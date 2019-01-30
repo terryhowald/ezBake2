@@ -21,8 +21,28 @@ class winMain:
 		self.builder.add_from_file("ezBake2.glade")
 		self.builder.connect_signals(self)
 
+		# Set New button initial state
+		self.toolNew = self.builder.get_object("toolNew")
+		self.toolNew.set_sensitive(True)
+
+		# Set Open button initial state
+		self.toolOpen= self.builder.get_object("toolOpen")
+		self.toolOpen.set_sensitive(True)
+
+		# Set Start button initial state
+		self.toolStart= self.builder.get_object("toolStart")
+		self.toolStart.set_sensitive(True)
+
+		# Set Stop button initial state
+		self.toolStop = self.builder.get_object("toolStop")
+		self.toolStop.set_sensitive(True)		
+
+		# Set Save button initial state
+		self.toolSave = self.builder.get_object("toolSave")
+		self.toolSave.set_sensitive(True)												
+
+		# Set Quit button initial state
 		self.toolQuit = self.builder.get_object("toolQuit")
-		self.toolQuit.connect("clicked", self.toolQuit_clicked)	
 		self.toolQuit.set_sensitive(True)			
 		
 		# Setup status bar
@@ -58,9 +78,25 @@ class winMain:
 		self.statusBar.pop(self.context_id)
 		status_text = "Random number = " + str(random.randint(1,101))
 		self.statusBar.push(self.context_id, status_text)			
-		return True		
+		return True	
 
-	def toolQuit_clicked(self, widget, data = None):
+	def on_toolNew_clicked(self, widget, data = None):
+		print("on_toolNew_clicked")	
+
+	def on_toolOpen_clicked(self, widget, data = None):
+		print("on_toolOpen_clicked")		
+
+	def on_toolStart_clicked(self, widget, data = None):
+		print("on_toolStart_clicked")			
+
+	def on_toolStop_clicked(self, widget, data = None):
+		print("on_toolStop_clicked")			
+
+	def on_toolSave_clicked(self, widget, data = None):
+		print("on_toolSave_clicked")					
+
+	def on_toolQuit_clicked(self, widget, data = None):
+		print("on_toolQuit_clicked")			
 		self.on_winMain_destroy(self)		
 		
 if __name__ == "__main__":

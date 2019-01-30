@@ -30,6 +30,7 @@
                 <property name="label" translatable="yes">New</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
+                <signal name="clicked" handler="on_toolNew_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -53,6 +54,7 @@
                 <property name="label" translatable="yes">Open</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-open</property>
+                <signal name="clicked" handler="on_toolOpen_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -76,6 +78,7 @@
                 <property name="label" translatable="yes">Start</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-play</property>
+                <signal name="clicked" handler="on_toolStart_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -99,6 +102,7 @@
                 <property name="label" translatable="yes">Stop</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-stop</property>
+                <signal name="clicked" handler="on_toolStop_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -122,6 +126,7 @@
                 <property name="label" translatable="yes">Save</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-save</property>
+                <signal name="clicked" handler="on_toolSave_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -145,10 +150,21 @@
                 <property name="label" translatable="yes">Quit</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-quit</property>
+                <signal name="clicked" handler="on_toolQuit_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">False</property>
               </packing>
             </child>
           </object>
