@@ -50,13 +50,25 @@ class winMain:
 		self.context_id = self.statusBar.get_context_id("status")
 		self.status_count = 0
 
+		# Setup graph
+		self.fig = Figure(figsize=(5,5), dpi=100)
+		self.fig.patch.set_facecolor('0.8')
+		self.ax = self.fig.add_subplot(111)	
+		self.canvas = FigureCanvas(self.fig)
+		self.setupplot()
+		self.winScroll = self.builder.get_object("winScroll")
+		self.winScroll.add_with_viewport(self.canvas)	
+
+		# Setup callback for graph clicks
+		self.cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
+
 		# Update status bar
 		status_text = "Random number = " + str(random.randint(1,101))
 		self.statusBar.push(self.context_id, status_text)							
 
 		# Start timer
-		timer_interval = 1
-		GObject.timeout_add_seconds(timer_interval, self.on_handle_timer)		
+		#timer_interval = 1
+		#GObject.timeout_add_seconds(timer_interval, self.on_handle_timer)		
 
 		# Display main window
 		self.winMain = self.builder.get_object("winMain")
@@ -67,6 +79,7 @@ class winMain:
 	
 	def on_winMain_destroy(self, widget, data=None):
 		print("on_winMain_destory")
+		self.fig.canvas.mpl_disconnect(self.cid)
 		Gtk.main_quit()
 
 	def on_file_quit_activate(self, widget, data=None):
@@ -97,7 +110,20 @@ class winMain:
 
 	def on_toolQuit_clicked(self, widget, data = None):
 		print("on_toolQuit_clicked")			
-		self.on_winMain_destroy(self)		
+		self.on_winMain_destroy(self)	
+
+	def setupplot(self):
+		self.ax.set_title('Kiln Firing Schedule')
+		self.ax.set_xlabel('Time (h)')
+		self.ax.set_ylabel('Temp (C)')
+		self.ax.set_xlim(0,24)
+		self.ax.set_ylim(0,1000)
+		self.ax.patch.set_facecolor('0.8')			
+
+	def onclick(self, event):
+		print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+			('double' if event.dblclick else 'single', event.button,
+			event.x, event.y, event.xdata, event.ydata))
 		
 if __name__ == "__main__":
 	app = winMain()
