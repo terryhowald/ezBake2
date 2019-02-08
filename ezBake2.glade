@@ -210,11 +210,12 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
+                <property name="homogeneous">True</property>
                 <child>
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Current Temp</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -223,9 +224,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="currTempEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -237,7 +242,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Target Temp</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -246,9 +251,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="targTempEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -260,7 +269,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Room Temp</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -269,9 +278,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="roomTempEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -283,7 +296,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Running Time</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -292,9 +305,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="runnTimeEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -306,7 +323,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Remaining Time</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -315,9 +332,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="remaTimeEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -329,7 +350,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">PWM Duty Cycle</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -338,9 +359,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="pwmDutyEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -352,7 +377,7 @@
                   <object class="GtkLabel">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">label</property>
+                    <property name="label" translatable="yes">Oxygen</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -361,9 +386,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="oxygenEntry">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="sensitive">False</property>
+                    <property name="can_focus">False</property>
+                    <property name="editable">False</property>
+                    <property name="width_chars">6</property>
+                    <property name="xalign">0.5</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -375,7 +404,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="padding">2</property>
+                <property name="padding">4</property>
                 <property name="position">1</property>
               </packing>
             </child>

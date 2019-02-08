@@ -31,15 +31,15 @@ class winMain:
 
 		# Set Start button initial state
 		self.toolStart= self.builder.get_object("toolStart")
-		self.toolStart.set_sensitive(True)
+		self.toolStart.set_sensitive(False)
 
 		# Set Stop button initial state
 		self.toolStop = self.builder.get_object("toolStop")
-		self.toolStop.set_sensitive(True)		
+		self.toolStop.set_sensitive(False)		
 
 		# Set Save button initial state
 		self.toolSave = self.builder.get_object("toolSave")
-		self.toolSave.set_sensitive(True)												
+		self.toolSave.set_sensitive(False)												
 
 		# Set Quit button initial state
 		self.toolQuit = self.builder.get_object("toolQuit")
@@ -49,6 +49,27 @@ class winMain:
 		self.statusBar = self.builder.get_object("bar_status")
 		self.context_id = self.statusBar.get_context_id("status")
 		self.status_count = 0
+
+		# Update status bar
+		#status_text = "Random number = " + str(random.randint(1,101))
+		status_text = "Click on New or Open to begin"
+		self.statusBar.push(self.context_id, status_text)	
+
+		# Setup entry fields
+		self.currTempEntry = self.builder.get_object("currTempEntry")
+		self.currTempEntry.set_text("0.0 °C")	
+		self.targTempEntry = self.builder.get_object("targTempEntry")
+		self.targTempEntry.set_text("0.0 °C")	
+		self.roomTempEntry = self.builder.get_object("roomTempEntry")
+		self.roomTempEntry.set_text("0.0 °C")	
+		self.runnTimeEntry = self.builder.get_object("runnTimeEntry")
+		self.runnTimeEntry.set_text("00:00:00")
+		self.remaTimeEntry = self.builder.get_object("remaTimeEntry")
+		self.remaTimeEntry.set_text("00:00:00")
+		self.pwmDutyEntry = self.builder.get_object("pwmDutyEntry")
+		self.pwmDutyEntry.set_text("0%")
+		self.oxygenEntry = self.builder.get_object("oxygenEntry")
+		self.oxygenEntry.set_text("Off")												
 
 		# Setup graph
 		self.fig = Figure(figsize=(5,5), dpi=100)
@@ -60,11 +81,7 @@ class winMain:
 		self.winScroll.add_with_viewport(self.canvas)	
 
 		# Setup callback for graph clicks
-		self.cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)
-
-		# Update status bar
-		status_text = "Random number = " + str(random.randint(1,101))
-		self.statusBar.push(self.context_id, status_text)							
+		self.cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)						
 
 		# Start timer
 		#timer_interval = 1
