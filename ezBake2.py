@@ -52,7 +52,7 @@ class winMain:
 
 		# Setup graph
 		self.fig = Figure(figsize=(5,5), dpi=100)
-		self.fig.patch.set_facecolor('0.8')
+		#self.fig.patch.set_facecolor('0.8')
 		self.ax = self.fig.add_subplot(111)	
 		self.canvas = FigureCanvas(self.fig)
 		self.setupplot()
@@ -118,7 +118,7 @@ class winMain:
 		self.ax.set_ylabel('Temp (C)')
 		self.ax.set_xlim(0,24)
 		self.ax.set_ylim(0,1000)
-		self.ax.patch.set_facecolor('0.8')			
+		#self.ax.patch.set_facecolor('0.8')			
 
 	def onclick(self, event):
 		print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
