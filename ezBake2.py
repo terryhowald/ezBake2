@@ -11,6 +11,11 @@ import numpy as np
 
 import os
 import random
+import csv 
+import sys
+import numpy as np
+import time
+import math
 
 class winMain:
 	
@@ -23,7 +28,7 @@ class winMain:
 
 		# Set New button initial state
 		self.toolNew = self.builder.get_object("toolNew")
-		self.toolNew.set_sensitive(True)
+		self.toolNew.set_sensitive(False)
 
 		# Set Open button initial state
 		self.toolOpen= self.builder.get_object("toolOpen")
@@ -114,13 +119,43 @@ class winMain:
 		print("on_toolNew_clicked")	
 
 	def on_toolOpen_clicked(self, widget, data = None):
-		print("on_toolOpen_clicked")		
+		print("on_toolOpen_clicked")
+
+		# Clear out data lists
+		self.xdata = []
+		self.ydata = []	
+		self.curTemp = []
+		self.curTime = []
+
+		# Load temp data from csv file
+		f = open('temp.csv')
+		data = csv.reader(f)
+		for row in data:
+		    self.xdata.append(float(row[0]))
+		    self.ydata.append(float(row[1]))	    
+		f.close()
+
+		# Interpret data
+		self.interp_data()		
+
+		# Plot temp data
+		self.plotdata()					
+
+		self.toolStart.set_sensitive(True)
+		self.toolOpen.set_sensitive(False)				
 
 	def on_toolStart_clicked(self, widget, data = None):
-		print("on_toolStart_clicked")			
+		print("on_toolStart_clicked")
+		self.toolStart.set_sensitive(False)
+		self.toolOpen.set_sensitive(False)
+		self.toolStop.set_sensitive(True)
+		self.toolQuit.set_sensitive(False)					
 
 	def on_toolStop_clicked(self, widget, data = None):
-		print("on_toolStop_clicked")			
+		print("on_toolStop_clicked")
+		self.toolStop.set_sensitive(False)
+		self.toolOpen.set_sensitive(True)
+		self.toolQuit.set_sensitive(True)					
 
 	def on_toolSave_clicked(self, widget, data = None):
 		print("on_toolSave_clicked")					
@@ -141,6 +176,35 @@ class winMain:
 		print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
 			('double' if event.dblclick else 'single', event.button,
 			event.x, event.y, event.xdata, event.ydata))
+
+	def interp_data(self):
+		# Create target temp data every 1 minute
+		xmax = self.xdata[-1]
+		xinc = 1.0/60.0
+		self.xval = np.arange(0.0, float(xmax)+xinc, xinc)
+		self.yint = np.interp(self.xval, self.xdata, self.ydata)
+
+	def setupplot(self):
+		self.ax.legend(loc='upper right')
+		self.ax.set_title('Kiln Firing Schedule')
+		self.ax.set_xlabel('Time (h)')
+		self.ax.set_ylabel('Temp (C)')
+		self.ax.set_axis_bgcolor((0.75,0.75,0.75))
+		self.ax.set_xlim(0,24)
+		self.ax.set_ylim(0,1000)
+		
+	def resetplot(self):
+		self.ax.cla()		
+
+	def plotdata(self):
+		self.resetplot()
+		self.setupplot()
+		self.ax.set_xlim(0, int(self.xdata[-1]))
+		self.ax.scatter(self.xdata, self.ydata, color='black')
+		self.ax.plot(self.xval, self.yint, color='black')
+		#self.ax.plot(self.oxdata, self.oydata, color='blue')
+		self.ax.scatter(self.curTime, self.curTemp, color='red')
+		self.fig.canvas.draw()					
 		
 if __name__ == "__main__":
 	app = winMain()
