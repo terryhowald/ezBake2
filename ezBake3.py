@@ -8,10 +8,12 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
+import constants
+
 class winMain:
     def __init__(self):
         # Setup the app
-        self.app = App(title = "ezBake", width = 800, height = 600)
+        self.app = App(title = "ezBake", width = constants.APP_WIDTH, height = constants.APP_HEIGHT, visible=False)       
 
         # Setup the toolbar
         toolbar_box = Box(self.app, width="fill", align="top", border=True, layout="grid")
@@ -53,17 +55,17 @@ class winMain:
         self.pwmDutyCycleTextBox = TextBox(data_box, text="0%", enabled=False)                                                
 
         # Setup graph display
-        graph_box = Box(self.app, align="top", width="fill", border=False)
-        figure = Figure(figsize=(6.75, 5.3))
-        plot = figure.add_subplot(1, 1, 1)
-        plot.set_title('Kiln Firing Schedule')
-        plot.set_xlabel('Time (h)')
-        plot.set_ylabel('Temp (°C)')
-        plot.set_xlim(0,24)
-        plot.set_ylim(0,1000)        
+        self.graph_box = Box(self.app, align="top", width="fill", border=False)
+        self.figure = Figure(figsize=(6.75, 5.3))
+        self.plot = self.figure.add_subplot(1, 1, 1)
+        self.plot.set_title('Kiln Firing Schedule')
+        self.plot.set_xlabel('Time (h)')
+        self.plot.set_ylabel('Temp (°C)')
+        self.plot.set_xlim(0,constants.INIT_TIME)
+        self.plot.set_ylim(0,constants.INIT_TEMP)        
         #plot.plot(self.t, self.s, color="blue")
-        canvas = FigureCanvasTkAgg(figure, graph_box.tk)
-        canvas.get_tk_widget().grid(row=0, column=0)      
+        self.canvas = FigureCanvasTkAgg(self.figure, self.graph_box.tk)
+        self.canvas.get_tk_widget().grid(row=0, column=0)      
 
         # Call handle_quitButtion() when Close Window selected
         self.app.when_closed = self.handle_quitButton
@@ -72,13 +74,26 @@ class winMain:
         #self.app.repeat(1000, self.handle_repeat)
 
         # Center program on screen
-        #self.app.tk.
-     
+        self.centerWindow()
+        self.app.visible = True  
+               
     def main(self):
         self.app.display()
 
     def handle_newButton(self):
-        print("newButton pressed")
+        self.maxTime = int(self.app.question("Maximum Time", "Enter maximum time in Hours"))
+        self.maxTemp = int(self.app.question("Maximum Temp", "Enter maximum temp in Celcius"))
+        self.plot.cla()
+
+        self.plot.set_title('Kiln Firing Schedule')
+        self.plot.set_xlabel('Time (h)')
+        self.plot.set_ylabel('Temp (°C)')        
+        self.plot.set_xlim(0,self.maxTime)
+        self.plot.set_ylim(0,self.maxTemp)  
+        self.canvas.get_tk_widget().grid(row=0, column=0)    
+
+        self.canvas = FigureCanvasTkAgg(self.figure, self.graph_box.tk)
+        self.canvas.get_tk_widget().grid(row=0, column=0)               
 
     def handle_openButton(self):
         print("openButton pressed")
@@ -98,7 +113,15 @@ class winMain:
         self.app.destroy()
 
     def handle_repeat(self):
-        print("handle_repeat called")                                
+        print("handle_repeat called")
+
+    def centerWindow(self):
+        # Gets both half the screen width/height and window width/height
+        positionRight = int(self.app.tk.winfo_screenwidth()/2 - constants.APP_WIDTH/2)
+        positionDown = int(self.app.tk.winfo_screenheight()/2 - constants.APP_HEIGHT/2)  
+
+        # Positions the window in the center of the page.
+        self.app.tk.geometry("+{}+{}".format(positionRight, positionDown))                                          
 
 if __name__ == "__main__":
 
