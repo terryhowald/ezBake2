@@ -25,6 +25,7 @@ class winMain:
         self.quitButton = PushButton(toolbar_box, command=self.handle_quitButton, text="Quit", width=6, grid=[5,0])
 
         # Set initual toolbar button states
+        self.openButton.disable()
         self.startButton.disable()
         self.stopButton.disable()
         self.saveButton.disable()  
@@ -58,14 +59,11 @@ class winMain:
         self.graph_box = Box(self.app, align="top", width="fill", border=False)
         self.figure = Figure(figsize=(6.75, 5.3))
         self.plot = self.figure.add_subplot(1, 1, 1)
-        self.plot.set_title('Kiln Firing Schedule')
-        self.plot.set_xlabel('Time (h)')
-        self.plot.set_ylabel('Temp (°C)')
-        self.plot.set_xlim(0,constants.INIT_TIME)
-        self.plot.set_ylim(0,constants.INIT_TEMP)        
-        #plot.plot(self.t, self.s, color="blue")
-        self.canvas = FigureCanvasTkAgg(self.figure, self.graph_box.tk)
-        self.canvas.get_tk_widget().grid(row=0, column=0)      
+
+        # Setup plot
+        self.maxTime = constants.INIT_TIME
+        self.maxTemp = constants.INIT_TEMP
+        self.setupPlot()
 
         # Call handle_quitButtion() when Close Window selected
         self.app.when_closed = self.handle_quitButton
@@ -79,21 +77,72 @@ class winMain:
                
     def main(self):
         self.app.display()
+        
+    def onPlotClick(self, event):
+        print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+			('double' if event.dblclick else 'single', event.button,
+			event.x, event.y, event.xdata, event.ydata))
+
+    def onMouseMove(self, event):
+        # Clear status if outside plot
+        if event.inaxes == None:
+            self.statusText.value = ""             
+            return       
+
+        # Round mouse coordinates for display
+        xval = str(round(event.xdata, 2))
+        yval = str(round(event.ydata, 2))
+
+        # Display time and temp values in the status box
+        self.statusText.value = "Time = " + xval + ", Temp = " + yval                   
 
     def handle_newButton(self):
-        self.maxTime = int(self.app.question("Maximum Time", "Enter maximum time in Hours"))
-        self.maxTemp = int(self.app.question("Maximum Temp", "Enter maximum temp in Celcius"))
-        self.plot.cla()
+        # Retrieve maximum time from user
+        value = self.app.question("Maximum Time", "Enter maximum time in hours")
+        if value == None or value == '':
+            return
+        self.maxTime = float(value)
+        if self.maxTime <= constants.MIN_TIME or self.maxTime > constants.MAX_TIME:
+            return
 
+        # Retrieve maximum temp from user
+        value = self.app.question("Maximum Temp", "Enter maximum temp in Celcius")
+        if value == None:
+            return
+        self.maxTemp = float(value)            
+        if self.maxTemp <= constants.MIN_TEMP or self.maxTemp > constants.MAX_TEMP:
+            return
+
+        # Reset plot
+        self.resetPlot()
+
+        # Setup plot
+        self.setupPlot()
+
+        # Activate Start button
+        self.startButton.enable()        
+ 
+    def resetPlot(self):
+        # Reset plot
+        self.plot.cla()  
+
+    def setupPlot(self):
+        # Setup plot
         self.plot.set_title('Kiln Firing Schedule')
         self.plot.set_xlabel('Time (h)')
         self.plot.set_ylabel('Temp (°C)')        
         self.plot.set_xlim(0,self.maxTime)
         self.plot.set_ylim(0,self.maxTemp)  
-        self.canvas.get_tk_widget().grid(row=0, column=0)    
 
+        #plot.plot(self.t, self.s, color="blue")        
+   
+        # Display plot
         self.canvas = FigureCanvasTkAgg(self.figure, self.graph_box.tk)
-        self.canvas.get_tk_widget().grid(row=0, column=0)               
+        self.canvas.get_tk_widget().grid(row=0, column=0)  
+
+        # Setup callback for plot clicks
+        self.figure.canvas.mpl_connect('button_press_event', self.onPlotClick) #  
+        self.figure.canvas.mpl_connect('motion_notify_event', self.onMouseMove)                         
 
     def handle_openButton(self):
         print("openButton pressed")
