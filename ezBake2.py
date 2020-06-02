@@ -1,211 +1,196 @@
 #!/usr/bin/env python3
 
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-from gi.repository import GObject 
+from guizero import App, Box, Text, TextBox, PushButton
 
-from matplotlib.backends.backend_gtk3cairo import FigureCanvasGTK3Cairo as FigureCanvas	
+import matplotlib
+#matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
-import os
-import random
-import csv 
-import sys
-import numpy as np
-import time
-import math
+import constants
 
 class winMain:
-	
-	def __init__(self):
-		
-		# Get GUI from Glade file
-		self.builder = Gtk.Builder()
-		self.builder.add_from_file("ezBake2.glade")
-		self.builder.connect_signals(self)
+    def __init__(self):
+        # Setup the app
+        self.app = App(title = "ezBake", width = constants.APP_WIDTH, height = constants.APP_HEIGHT, visible=False)       
 
-		# Set New button initial state
-		self.toolNew = self.builder.get_object("toolNew")
-		self.toolNew.set_sensitive(False)
+        # Setup the toolbar
+        toolbar_box = Box(self.app, width="fill", align="top", border=True, layout="grid")
+        self.newButton = PushButton(toolbar_box, command=self.handle_newButton, text="New", width=6, grid=[0,0])
+        self.openButton = PushButton(toolbar_box, command=self.handle_openButton, text="Open", width=6, grid=[1,0])
+        self.startButton = PushButton(toolbar_box, command=self.handle_startButton, text="Start", width=6, grid=[2,0])
+        self.stopButton = PushButton(toolbar_box, command=self.handle_stopButton, text="Stop", width=6, grid=[3,0])
+        self.saveButton = PushButton(toolbar_box, command=self.handle_saveButton, text="Save", width=6, grid=[4,0])
+        self.quitButton = PushButton(toolbar_box, command=self.handle_quitButton, text="Quit", width=6, grid=[5,0])
 
-		# Set Open button initial state
-		self.toolOpen= self.builder.get_object("toolOpen")
-		self.toolOpen.set_sensitive(True)
+        # Set initual toolbar button states
+        self.openButton.disable()
+        self.startButton.disable()
+        self.stopButton.disable()
+        self.saveButton.disable()  
 
-		# Set Start button initial state
-		self.toolStart= self.builder.get_object("toolStart")
-		self.toolStart.set_sensitive(False)
+        # Setup the status bar
+        status_box = Box(self.app, width="fill", align="bottom", border=True)
+        self.statusText = Text(status_box, align="left", text="Status")                         
 
-		# Set Stop button initial state
-		self.toolStop = self.builder.get_object("toolStop")
-		self.toolStop.set_sensitive(False)		
+        # Setup sensor feedback box
+        data_box = Box(self.app, height="fill", align="right", border=True)
+        Text(data_box)
+        currTempText = Text(data_box, text="Current Temp")
+        self.currTempTextBox = TextBox(data_box, text="0.0 °C", enabled=False)
+        Text(data_box)
+        targTempText = Text(data_box, text = "Target Temp")
+        self.targTempTextBox = TextBox(data_box, text="0.0 °C", enabled=False)
+        Text(data_box)        
+        roomTempText = Text(data_box, text = "Room Temp")
+        self.roomTempTextBox = TextBox(data_box, text="0.0 °C", enabled=False)
+        Text(data_box)        
+        runTempText = Text(data_box, text = "Running Time")
+        self.runTempTextBox = TextBox(data_box, text="00:00:00", enabled=False)
+        Text(data_box)           
+        remTempText = Text(data_box, text = "Remaining Time")
+        self.remTempTextBox = TextBox(data_box, text="00:00:00", enabled=False)
+        Text(data_box)           
+        pwmDutyCycleText = Text(data_box, text = "PWM Duty Cycle")
+        self.pwmDutyCycleTextBox = TextBox(data_box, text="0%", enabled=False)  
 
-		# Set Save button initial state
-		self.toolSave = self.builder.get_object("toolSave")
-		self.toolSave.set_sensitive(False)												
+        # Initialize Time and Temp arrays
+        self.timePoints = []
+        self.tempPoints = [] 
+        self.timePoints.append(0.0)
+        self.tempPoints.append(0.0)                                                           
 
-		# Set Quit button initial state
-		self.toolQuit = self.builder.get_object("toolQuit")
-		self.toolQuit.set_sensitive(True)			
-		
-		# Setup status bar
-		self.statusBar = self.builder.get_object("bar_status")
-		self.context_id = self.statusBar.get_context_id("status")
-		self.status_count = 0
+        # Setup graph display
+        self.graph_box = Box(self.app, align="top", width="fill", border=False)
+        self.figure = Figure(figsize=(6.75, 5.3))
+        self.plot = self.figure.add_subplot(1, 1, 1)
 
-		# Update status bar
-		#status_text = "Random number = " + str(random.randint(1,101))
-		status_text = "Click on New or Open to begin"
-		self.statusBar.push(self.context_id, status_text)	
+        # Setup plot
+        self.maxTime = constants.INIT_TIME
+        self.maxTemp = constants.INIT_TEMP
+        self.setupPlot()
 
-		# Setup entry fields
-		self.currTempEntry = self.builder.get_object("currTempEntry")
-		self.currTempEntry.set_text("0.0 °C")	
-		self.targTempEntry = self.builder.get_object("targTempEntry")
-		self.targTempEntry.set_text("0.0 °C")	
-		self.roomTempEntry = self.builder.get_object("roomTempEntry")
-		self.roomTempEntry.set_text("0.0 °C")	
-		self.runnTimeEntry = self.builder.get_object("runnTimeEntry")
-		self.runnTimeEntry.set_text("00:00:00")
-		self.remaTimeEntry = self.builder.get_object("remaTimeEntry")
-		self.remaTimeEntry.set_text("00:00:00")
-		self.pwmDutyEntry = self.builder.get_object("pwmDutyEntry")
-		self.pwmDutyEntry.set_text("0%")
-		self.oxygenEntry = self.builder.get_object("oxygenEntry")
-		self.oxygenEntry.set_text("Off")												
+        # Call handle_quitButtion() when Close Window selected
+        self.app.when_closed = self.handle_quitButton
 
-		# Setup graph
-		self.fig = Figure(figsize=(5,5), dpi=100)
-		#self.fig.patch.set_facecolor('0.8')
-		self.ax = self.fig.add_subplot(111)	
-		self.canvas = FigureCanvas(self.fig)
-		self.setupplot()
-		self.winScroll = self.builder.get_object("winScroll")
-		self.winScroll.add_with_viewport(self.canvas)	
+        # Call handle_repeat() every 1000 msec
+        #self.app.repeat(1000, self.handle_repeat)
 
-		# Setup callback for graph clicks
-		self.cid = self.fig.canvas.mpl_connect('button_press_event', self.onclick)						
+        # Center program on screen
+        self.centerWindow()
+        self.app.visible = True  
+               
+    def main(self):
+        self.app.display()
+        
+    def onPlotClick(self, event):
+        # Ignore if outside plot
+        if event.inaxes == None:         
+            return  
+        # Check data
+        if event.xdata > max(self.timePoints):
+            # Append plot data and replot
+            self.timePoints.append(event.xdata)
+            self.tempPoints.append(event.ydata)
+            self.setupPlot()                         
 
-		# Start timer
-		#timer_interval = 1
-		#GObject.timeout_add_seconds(timer_interval, self.on_handle_timer)		
+    def onMouseMove(self, event):
+        # Clear status if outside plot
+        if event.inaxes == None:
+            self.statusText.value = ""             
+            return       
 
-		# Display main window
-		self.winMain = self.builder.get_object("winMain")
-		self.winMain.show_all()		
-	
-	def main(self):
-		Gtk.main()
-	
-	def on_winMain_destroy(self, widget, data=None):
-		print("on_winMain_destory")
-		self.fig.canvas.mpl_disconnect(self.cid)
-		Gtk.main_quit()
+        # Round mouse coordinates for display
+        xval = str(round(event.xdata, 2))
+        yval = str(round(event.ydata, 2))
 
-	def on_file_quit_activate(self, widget, data=None):
-		print("on_file_quit")
-		self.winMain.destroy()		
+        # Display time and temp values in the status box
+        self.statusText.value = "Time = " + xval + ", Temp = " + yval                   
 
-	def on_handle_timer(self):
-		# Update status bar
-		self.statusBar.pop(self.context_id)
-		status_text = "Random number = " + str(random.randint(1,101))
-		self.statusBar.push(self.context_id, status_text)			
-		return True	
+    def handle_newButton(self):
+        # Retrieve maximum time from user
+        value = self.app.question("Maximum Time", "Enter maximum time in hours")
+        if value == None or value == '':
+            return
+        self.maxTime = float(value)
+        if self.maxTime <= constants.MIN_TIME or self.maxTime > constants.MAX_TIME:
+            return
 
-	def on_toolNew_clicked(self, widget, data = None):
-		print("on_toolNew_clicked")	
+        # Retrieve maximum temp from user
+        value = self.app.question("Maximum Temp", "Enter maximum temp in Celcius")
+        if value == None:
+            return
+        self.maxTemp = float(value)            
+        if self.maxTemp <= constants.MIN_TEMP or self.maxTemp > constants.MAX_TEMP:
+            return
 
-	def on_toolOpen_clicked(self, widget, data = None):
-		print("on_toolOpen_clicked")
+        # Reset plot
+        self.resetPlot()
 
-		# Clear out data lists
-		self.xdata = []
-		self.ydata = []	
-		self.curTemp = []
-		self.curTime = []
+        # Setup plot
+        self.timePoints = []
+        self.tempPoints = []
+        self.timePoints.append(0.0)
+        self.tempPoints.append(0.0)             
+        self.setupPlot()
 
-		# Load temp data from csv file
-		f = open('temp.csv')
-		data = csv.reader(f)
-		for row in data:
-		    self.xdata.append(float(row[0]))
-		    self.ydata.append(float(row[1]))	    
-		f.close()
+        # Activate Start button
+        self.startButton.enable()        
+ 
+    def resetPlot(self):
+        # Reset plot
+        self.plot.cla()  
 
-		# Interpret data
-		self.interp_data()		
+    def setupPlot(self):
+        # Setup plot
+        self.plot.set_title('Kiln Firing Schedule')
+        self.plot.set_xlabel('Time (h)')
+        self.plot.set_ylabel('Temp (°C)')        
+        self.plot.set_xlim(0,self.maxTime)
+        self.plot.set_ylim(0,self.maxTemp)  
 
-		# Plot temp data
-		self.plotdata()					
+        # Plot data
+        self.plot.plot(self.timePoints, self.tempPoints, color="black")
+        self.plot.scatter(self.timePoints, self.tempPoints, color="black")
 
-		self.toolStart.set_sensitive(True)
-		self.toolOpen.set_sensitive(False)				
+        # Display plot
+        self.canvas = FigureCanvasTkAgg(self.figure, self.graph_box.tk)
+        self.canvas.get_tk_widget().grid(row=0, column=0)  
 
-	def on_toolStart_clicked(self, widget, data = None):
-		print("on_toolStart_clicked")
-		self.toolStart.set_sensitive(False)
-		self.toolOpen.set_sensitive(False)
-		self.toolStop.set_sensitive(True)
-		self.toolQuit.set_sensitive(False)					
+        # Setup callback for plot clicks
+        self.figure.canvas.mpl_connect('button_press_event', self.onPlotClick) 
+        self.figure.canvas.mpl_connect('motion_notify_event', self.onMouseMove)                         
 
-	def on_toolStop_clicked(self, widget, data = None):
-		print("on_toolStop_clicked")
-		self.toolStop.set_sensitive(False)
-		self.toolOpen.set_sensitive(True)
-		self.toolQuit.set_sensitive(True)					
+    def handle_openButton(self):
+        print("openButton pressed")
 
-	def on_toolSave_clicked(self, widget, data = None):
-		print("on_toolSave_clicked")					
+    def handle_startButton(self):
+        print("startButton pressed")
 
-	def on_toolQuit_clicked(self, widget, data = None):
-		print("on_toolQuit_clicked")			
-		self.on_winMain_destroy(self)	
+    def handle_stopButton(self):
+        print("stopButton pressed")
 
-	def setupplot(self):
-		self.ax.set_title('Kiln Firing Schedule')
-		self.ax.set_xlabel('Time (h)')
-		self.ax.set_ylabel('Temp (C)')
-		self.ax.set_xlim(0,24)
-		self.ax.set_ylim(0,1000)
-		#self.ax.patch.set_facecolor('0.8')			
+    def handle_saveButton(self):
+        print("saveButton pressed")
 
-	def onclick(self, event):
-		print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-			('double' if event.dblclick else 'single', event.button,
-			event.x, event.y, event.xdata, event.ydata))
+    def handle_quitButton(self):
+        print("quitButton pressed")
+        # Shutdown program
+        self.app.destroy()
 
-	def interp_data(self):
-		# Create target temp data every 1 minute
-		xmax = self.xdata[-1]
-		xinc = 1.0/60.0
-		self.xval = np.arange(0.0, float(xmax)+xinc, xinc)
-		self.yint = np.interp(self.xval, self.xdata, self.ydata)
+    def handle_repeat(self):
+        print("handle_repeat called")
 
-	def setupplot(self):
-		self.ax.legend(loc='upper right')
-		self.ax.set_title('Kiln Firing Schedule')
-		self.ax.set_xlabel('Time (h)')
-		self.ax.set_ylabel('Temp (C)')
-		self.ax.set_axis_bgcolor((0.75,0.75,0.75))
-		self.ax.set_xlim(0,24)
-		self.ax.set_ylim(0,1000)
-		
-	def resetplot(self):
-		self.ax.cla()		
+    def centerWindow(self):
+        # Gets both half the screen width/height and window width/height
+        positionRight = int(self.app.tk.winfo_screenwidth()/2 - constants.APP_WIDTH/2)
+        positionDown = int(self.app.tk.winfo_screenheight()/2 - constants.APP_HEIGHT/2)  
 
-	def plotdata(self):
-		self.resetplot()
-		self.setupplot()
-		self.ax.set_xlim(0, int(self.xdata[-1]))
-		self.ax.scatter(self.xdata, self.ydata, color='black')
-		self.ax.plot(self.xval, self.yint, color='black')
-		#self.ax.plot(self.oxdata, self.oydata, color='blue')
-		self.ax.scatter(self.curTime, self.curTemp, color='red')
-		self.fig.canvas.draw()					
-		
+        # Positions the window in the center of the page.
+        self.app.tk.geometry("+{}+{}".format(positionRight, positionDown))                                          
+
 if __name__ == "__main__":
+
 	app = winMain()
 	app.main()
